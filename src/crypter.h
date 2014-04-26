@@ -53,9 +53,29 @@ public:
         // 25000 rounds is just under 0.1 seconds on a 1.86 GHz Pentium M
         // ie slightly lower than the lowest hardware we need bother supporting
         nDeriveIterations = 25000;
-        nDerivationMethod = 0;
+        nDerivationMethod = 1;
         vchOtherDerivationParameters = std::vector<unsigned char>(0);
     }
+
+    CMasterKey(unsigned int nDerivationMethodIndex)
+    {
+        switch (nDerivationMethodIndex)
+        {
+            case 0: // sha512
+            default:
+                nDeriveIterations = 25000;
+                nDerivationMethod = 0;
+                vchOtherDerivationParameters = std::vector<unsigned char>(0);
+            break;
+
+            case 1: // scrypt+sha512
+                nDeriveIterations = 10000;
+                nDerivationMethod = 1;
+                vchOtherDerivationParameters = std::vector<unsigned char>(0);
+            break;
+        }
+    }
+
 };
 
 typedef std::vector<unsigned char, secure_allocator<unsigned char> > CKeyingMaterial;
@@ -76,21 +96,28 @@ public:
 
     void CleanKey()
     {
-        memset(&chKey, 0, sizeof chKey);
-        memset(&chIV, 0, sizeof chIV);
-        munlock(&chKey, sizeof chKey);
-        munlock(&chIV, sizeof chIV);
+        OPENSSL_cleanse(&chKey, sizeof chKey);
+        OPENSSL_cleanse(&chIV, sizeof chIV);
         fKeySet = false;
     }
 
     CCrypter()
     {
         fKeySet = false;
+
+        // Try to keep the key data out of swap (and be a bit over-careful to keep the IV that we don't even use out of swap)
+        // Note that this does nothing about suspend-to-disk (which will put all our key data on disk)
+        // Note as well that at no point in this program is any attempt made to prevent stealing of keys by reading the memory of the running process.
+        LockedPageManager::instance.LockRange(&chKey[0], sizeof chKey);
+        LockedPageManager::instance.LockRange(&chIV[0], sizeof chIV);
     }
 
     ~CCrypter()
     {
         CleanKey();
+
+        LockedPageManager::instance.UnlockRange(&chKey[0], sizeof chKey);
+        LockedPageManager::instance.UnlockRange(&chIV[0], sizeof chIV);
     }
 };
 

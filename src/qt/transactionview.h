@@ -65,6 +65,7 @@ private slots:
     void editLabel();
     void copyLabel();
     void copyAmount();
+    void copyTxID();
 
 signals:
     void doubleClicked(const QModelIndex&);
@@ -75,6 +76,7 @@ public slots:
     void changedPrefix(const QString &prefix);
     void changedAmount(const QString &amount);
     void exportClicked();
+    void focusTransaction(const QModelIndex&);
 
 };
 

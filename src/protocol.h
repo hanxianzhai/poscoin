@@ -15,20 +15,14 @@
 #include <string>
 #include "uint256.h"
 
-#define PPCOIN_PORT  9901
-#define RPC_PORT     9902
-#define TESTNET_PORT 9903
-#define TESTNET_RPC_PORT 9904
-
 extern bool fTestNet;
-
-void GetMessageStart(unsigned char pchMessageStart[], bool fPersistent = false);
-
 static inline unsigned short GetDefaultPort(const bool testnet = fTestNet)
 {
-    return testnet ? TESTNET_PORT : PPCOIN_PORT;
+    return testnet ? 25714 : 15714;
 }
 
+
+extern unsigned char pchMessageStart[4];
 
 /** Message header.
  * (4) message start.
@@ -55,8 +49,16 @@ class CMessageHeader
 
     // TODO: make private (improves encapsulation)
     public:
-        enum { COMMAND_SIZE=12 };
-        unsigned char pchMessageStart[4];
+        enum {
+            MESSAGE_START_SIZE=sizeof(::pchMessageStart),
+            COMMAND_SIZE=12,
+            MESSAGE_SIZE_SIZE=sizeof(int),
+            CHECKSUM_SIZE=sizeof(int),
+
+            MESSAGE_SIZE_OFFSET=MESSAGE_START_SIZE+COMMAND_SIZE,
+            CHECKSUM_OFFSET=MESSAGE_SIZE_OFFSET+MESSAGE_SIZE_SIZE
+        };
+        char pchMessageStart[MESSAGE_START_SIZE];
         char pchCommand[COMMAND_SIZE];
         unsigned int nMessageSize;
         unsigned int nChecksum;
@@ -73,7 +75,7 @@ class CAddress : public CService
 {
     public:
         CAddress();
-        explicit CAddress(CService ipIn, uint64 nServicesIn=NODE_NETWORK);
+        explicit CAddress(CService ipIn, uint64_t nServicesIn=NODE_NETWORK);
 
         void Init();
 
@@ -96,13 +98,13 @@ class CAddress : public CService
 
     // TODO: make private (improves encapsulation)
     public:
-        uint64 nServices;
+        uint64_t nServices;
 
         // disk and network only
         unsigned int nTime;
 
         // memory only
-        int64 nLastTry;
+        int64_t nLastTry;
 };
 
 /** inv message data */

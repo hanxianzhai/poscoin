@@ -17,13 +17,13 @@ SendCoinsEntry::SendCoinsEntry(QWidget *parent) :
 {
     ui->setupUi(this);
 
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     ui->payToLayout->setSpacing(4);
 #endif
-
 #if QT_VERSION >= 0x040700
-    ui->payTo->setPlaceholderText(tr("Enter a PPCoin address"));
+    /* Do not move this to the XML file, Qt before 4.7 will choke on it */
     ui->addAsLabel->setPlaceholderText(tr("Enter a label for this address to add it to your address book"));
+    ui->payTo->setPlaceholderText(tr("Enter a BlackCoin address (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)"));
 #endif
     setFocusPolicy(Qt::TabFocus);
     setFocusProxy(ui->payTo);
@@ -68,6 +68,12 @@ void SendCoinsEntry::on_payTo_textChanged(const QString &address)
 void SendCoinsEntry::setModel(WalletModel *model)
 {
     this->model = model;
+
+    if(model && model->getOptionsModel())
+        connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
+
+    connect(ui->payAmount, SIGNAL(textChanged()), this, SIGNAL(payAmountChanged()));
+
     clear();
 }
 
@@ -82,10 +88,8 @@ void SendCoinsEntry::clear()
     ui->addAsLabel->clear();
     ui->payAmount->clear();
     ui->payTo->setFocus();
-    if(model && model->getOptionsModel())
-    {
-        ui->payAmount->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
-    }
+    // update the display unit, to not use the default ("BTC")
+    updateDisplayUnit();
 }
 
 void SendCoinsEntry::on_deleteButton_clicked()
@@ -160,3 +164,11 @@ void SendCoinsEntry::setFocus()
     ui->payTo->setFocus();
 }
 
+void SendCoinsEntry::updateDisplayUnit()
+{
+    if(model && model->getOptionsModel())
+    {
+        // Update payAmount with the current unit
+        ui->payAmount->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
+    }
+}
