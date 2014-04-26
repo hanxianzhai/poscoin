@@ -8,7 +8,7 @@
 #include "net.h"
 #include "util.h"
 
-#define CHECKPOINT_MAX_SPAN (60 * 60) // max 1 hour before latest block
+#define CHECKPOINT_MAX_SPAN (60 * 60 * 4) // max 4 hours before latest block
 
 #ifdef WIN32
 #undef STRICT
@@ -45,6 +45,9 @@ namespace Checkpoints
     // Returns last CBlockIndex* in mapBlockIndex that is a checkpoint
     CBlockIndex* GetLastCheckpoint(const std::map<uint256, CBlockIndex*>& mapBlockIndex);
 
+    // Returns last checkpoint timestamp
+    int GetLastCheckpointTime();
+
     extern uint256 hashSyncCheckpoint;
     extern CSyncCheckpoint checkpointMessage;
     extern uint256 hashInvalidCheckpoint;
@@ -61,6 +64,7 @@ namespace Checkpoints
     bool SetCheckpointPrivKey(std::string strPrivKey);
     bool SendSyncCheckpoint(uint256 hashCheckpoint);
     bool IsMatureSyncCheckpoint();
+    bool IsSyncCheckpointTooOld(unsigned int nSeconds);
 }
 
 // ppcoin: synchronized checkpoint

@@ -127,7 +127,7 @@ bool Wait(int nSeconds)
     {
         if (fShutdown)
             return false;
-        MilliSleep(1000);
+        Sleep(1000);
     }
     return true;
 }
@@ -189,7 +189,7 @@ bool GetIPFromIRC(SOCKET hSocket, string strMyName, CNetAddr& ipRet)
 void ThreadIRCSeed(void* parg)
 {
     // Make this thread recognisable as the IRC seeding thread
-    RenameThread("blackcoin-ircseed");
+    RenameThread("bitcoin-ircseed");
 
     try
     {
@@ -214,7 +214,7 @@ void ThreadIRCSeed2(void* parg)
         return;
 
     // ... or if IRC is not enabled.
-    if (!GetBoolArg("-irc", false))
+    if (!GetBoolArg("-irc", true))
         return;
 
     printf("ThreadIRCSeed started\n");
@@ -260,7 +260,7 @@ void ThreadIRCSeed2(void* parg)
         if (!fNoListen && GetLocal(addrLocal, &addrIPv4) && nNameRetry<3)
             strMyName = EncodeAddress(GetLocalAddress(&addrConnect));
         if (strMyName == "")
-            strMyName = strprintf("x%"PRIu64"", GetRand(1000000000));
+            strMyName = strprintf("x%"PRI64u"", GetRand(1000000000));
 
         Send(hSocket, strprintf("NICK %s\r", strMyName.c_str()).c_str());
         Send(hSocket, strprintf("USER %s 8 * : %s\r", strMyName.c_str(), strMyName.c_str()).c_str());
@@ -284,7 +284,7 @@ void ThreadIRCSeed2(void* parg)
                 return;
         }
         nNameRetry = 0;
-        MilliSleep(500);
+        Sleep(500);
 
         // Get our external IP from the IRC server and re-nick before joining the channel
         CNetAddr addrFromIRC;
@@ -302,19 +302,19 @@ void ThreadIRCSeed2(void* parg)
         }
 
         if (fTestNet) {
-            Send(hSocket, "JOIN #blackcoinTEST\r");
-            Send(hSocket, "WHO #blackcoinTEST\r");
+            Send(hSocket, "JOIN #darsekTESTV2\r");
+            Send(hSocket, "WHO #darsekTESTV2\r");
         } else {
-            // randomly join #blackcoin00-#blackcoin05
-            int channel_number = GetRandInt(5);
+            // randomly join #darsek00-#darsek05
+            // int channel_number = GetRandInt(5);
 
             // Channel number is always 0 for initial release
-            //int channel_number = 0;
-            Send(hSocket, strprintf("JOIN #blackcoin%02d\r", channel_number).c_str());
-            Send(hSocket, strprintf("WHO #blackcoin%02d\r", channel_number).c_str());
+            int channel_number = 0;
+            Send(hSocket, strprintf("JOIN #darsek%02d\r", channel_number).c_str());
+            Send(hSocket, strprintf("WHO #darsek%02d\r", channel_number).c_str());
         }
 
-        int64_t nStart = GetTime();
+        int64 nStart = GetTime();
         string strLine;
         strLine.reserve(10000);
         while (!fShutdown && RecvLineIRC(hSocket, strLine))

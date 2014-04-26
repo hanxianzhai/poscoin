@@ -13,7 +13,8 @@ EditAddressDialog::EditAddressDialog(Mode mode, QWidget *parent) :
     ui->setupUi(this);
 
     GUIUtil::setupAddressWidget(ui->addressEdit, this);
-
+    setStyleSheet("QPushButton { background : #000000 ;border-radius:10px; border-color: white; color: red;  border-style: solid; border-width: 2px;font: bold 10px;min-width: 5em; \
+                   padding: 6px;}");
     switch(mode)
     {
     case NewReceivingAddress:
@@ -25,7 +26,7 @@ EditAddressDialog::EditAddressDialog(Mode mode, QWidget *parent) :
         break;
     case EditReceivingAddress:
         setWindowTitle(tr("Edit receiving address"));
-        ui->addressEdit->setEnabled(false);
+        ui->addressEdit->setDisabled(true);
         break;
     case EditSendingAddress:
         setWindowTitle(tr("Edit sending address"));
@@ -44,9 +45,6 @@ EditAddressDialog::~EditAddressDialog()
 void EditAddressDialog::setModel(AddressTableModel *model)
 {
     this->model = model;
-    if(!model)
-        return;
-
     mapper->setModel(model);
     mapper->addMapping(ui->labelEdit, AddressTableModel::Label);
     mapper->addMapping(ui->addressEdit, AddressTableModel::Address);
@@ -61,7 +59,6 @@ bool EditAddressDialog::saveCurrentRow()
 {
     if(!model)
         return false;
-
     switch(mode)
     {
     case NewReceivingAddress:
@@ -86,39 +83,35 @@ void EditAddressDialog::accept()
 {
     if(!model)
         return;
-
     if(!saveCurrentRow())
     {
         switch(model->getEditStatus())
         {
-        case AddressTableModel::OK:
-            // Failed with unknown reason. Just reject.
-            break;
-        case AddressTableModel::NO_CHANGES:
-            // No changes were made during edit operation. Just reject.
-            break;
-        case AddressTableModel::INVALID_ADDRESS:
+         case AddressTableModel::INVALID_ADDRESS:
             QMessageBox::warning(this, windowTitle(),
-                tr("The entered address \"%1\" is not a valid BlackCoin address.").arg(ui->addressEdit->text()),
+                tr("<FONT COLOR=red>The entered address \"%1\" is not a valid Federation Credit address.").arg(ui->addressEdit->text()),
                 QMessageBox::Ok, QMessageBox::Ok);
             break;
         case AddressTableModel::DUPLICATE_ADDRESS:
             QMessageBox::warning(this, windowTitle(),
-                tr("The entered address \"%1\" is already in the address book.").arg(ui->addressEdit->text()),
+                tr("<FONT COLOR=red>The entered address \"%1\" is already in the address book.").arg(ui->addressEdit->text()),
                 QMessageBox::Ok, QMessageBox::Ok);
             break;
         case AddressTableModel::WALLET_UNLOCK_FAILURE:
             QMessageBox::critical(this, windowTitle(),
-                tr("Could not unlock wallet."),
+                tr("<FONT COLOR=red>Could not unlock wallet."),
                 QMessageBox::Ok, QMessageBox::Ok);
             break;
         case AddressTableModel::KEY_GENERATION_FAILURE:
             QMessageBox::critical(this, windowTitle(),
-                tr("New key generation failed."),
+                tr("<FONT COLOR=red>New key generation failed."),
                 QMessageBox::Ok, QMessageBox::Ok);
+            return;
+        case AddressTableModel::OK:
+            // Failed with unknown reason. Just reject.
             break;
-
         }
+
         return;
     }
     QDialog::accept();

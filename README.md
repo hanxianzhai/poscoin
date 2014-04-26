@@ -1,7 +1,14 @@
+Darsek official development tree
 
-BlackCoin development tree
+Darsek - a hybrid scrypt PoW + PoS based cryptocurrency.
 
-BlackCoin is a PoS-based cryptocurrency.
+* 1 minute stake spacing
+* 3 minutes PoW spacing
+* Balanced PoW blocks and stakes weighting
+* 3.5 KED PoW subsidy 
+* The PoS interest halves every x64 multiply of PoS difficulty
+* Maximum PoS reward is 10 coins
+* ~ 500 Million total coins
 
 Development process
 ===========================
@@ -16,7 +23,7 @@ or are controversial.
 
 The master branch is regularly built and tested, but is not guaranteed
 to be completely stable. Tags are regularly created to indicate new
-stable release versions of BlackCoin.
+official, stable release versions of Darsek.
 
 Feature branches are created when there are major new features being
 worked on by several people.

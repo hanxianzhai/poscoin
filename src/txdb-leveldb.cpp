@@ -23,100 +23,64 @@
 using namespace std;
 using namespace boost;
 
-leveldb::DB *txdb; // global pointer for LevelDB object instance
+leveldb::DB *txdb;
 
 static leveldb::Options GetOptions() {
     leveldb::Options options;
     int nCacheSizeMB = GetArg("-dbcache", 25);
     options.block_cache = leveldb::NewLRUCache(nCacheSizeMB * 1048576);
-    options.filter_policy = leveldb::NewBloomFilterPolicy(10);
+    options.filter_policy = leveldb::NewBloomFilterPolicy(10); 
     return options;
 }
 
-void init_blockindex(leveldb::Options& options, bool fRemoveOld = false) {
-    // First time init.
-    filesystem::path directory = GetDataDir() / "txleveldb";
-
-    if (fRemoveOld) {
-        filesystem::remove_all(directory); // remove directory
-        unsigned int nFile = 1;
-
-        while (true)
-        {
-            filesystem::path strBlockFile = GetDataDir() / strprintf("blk%04u.dat", nFile);
-
-            // Break if no such file
-            if( !filesystem::exists( strBlockFile ) )
-                break;
-
-            filesystem::remove(strBlockFile);
-
-            nFile++;
-        }
-    }
-
-    filesystem::create_directory(directory);
-    printf("Opening LevelDB in %s\n", directory.string().c_str());
-    leveldb::Status status = leveldb::DB::Open(options, directory.string(), &txdb);
-    if (!status.ok()) {
-        throw runtime_error(strprintf("init_blockindex(): error opening database environment %s", status.ToString().c_str()));
-    }
+void MakeMockTXDB() {
+    leveldb::Options options = GetOptions();
+    options.create_if_missing = true;
+    // This will leak but don't care here.
+    options.env = leveldb::NewMemEnv(leveldb::Env::Default());
+    leveldb::Status status = leveldb::DB::Open(options, "txdb", &txdb);
+    if (!status.ok()) 
+        throw runtime_error(strprintf("Could not create mock LevelDB: %s", status.ToString().c_str()));
+    CTxDB txdb("w");
+    txdb.WriteVersion(CLIENT_VERSION);
 }
 
-// CDB subclasses are created and destroyed VERY OFTEN. That's why
-// we shouldn't treat this as a free operations.
+// NOTE: CDB subclasses are created and destroyed VERY OFTEN. Therefore we have
+// to keep databases in global variables to avoid constantly creating and
+// destroying them, which sucks. In future the code should be changed to not
+// treat the instantiation of a database as a free operation.
 CTxDB::CTxDB(const char* pszMode)
 {
     assert(pszMode);
+    pdb = txdb;
     activeBatch = NULL;
     fReadOnly = (!strchr(pszMode, '+') && !strchr(pszMode, 'w'));
 
-    if (txdb) {
-        pdb = txdb;
+    if (txdb)
         return;
-    }
 
+    // First time init.
+    filesystem::path directory = GetDataDir() / "txleveldb";
     bool fCreate = strchr(pszMode, 'c');
 
     options = GetOptions();
     options.create_if_missing = fCreate;
     options.filter_policy = leveldb::NewBloomFilterPolicy(10);
-
-    init_blockindex(options); // Init directory
+    filesystem::create_directory(directory);
+    printf("Opening LevelDB in %s\n", directory.string().c_str());
+    leveldb::Status status = leveldb::DB::Open(options, directory.string(), &txdb);
+    if (!status.ok()) {
+        throw runtime_error(strprintf("CDB(): error opening database environment %s", status.ToString().c_str()));
+    }
     pdb = txdb;
 
-    if (Exists(string("version")))
-    {
-        ReadVersion(nVersion);
-        printf("Transaction index version is %d\n", nVersion);
-
-        if (nVersion < DATABASE_VERSION)
-        {
-            printf("Required index version is %d, removing old database\n", DATABASE_VERSION);
-
-            // Leveldb instance destruction
-            delete txdb;
-            txdb = pdb = NULL;
-            delete activeBatch;
-            activeBatch = NULL;
-
-            init_blockindex(options, true); // Remove directory and create new database
-            pdb = txdb;
-
-            bool fTmp = fReadOnly;
-            fReadOnly = false;
-            WriteVersion(DATABASE_VERSION); // Save transaction index version
-            fReadOnly = fTmp;
-        }
-    }
-    else if (fCreate)
+    if (fCreate && !Exists(string("version")))
     {
         bool fTmp = fReadOnly;
         fReadOnly = false;
-        WriteVersion(DATABASE_VERSION);
+        WriteVersion(CLIENT_VERSION);
         fReadOnly = fTmp;
     }
-
     printf("Opened LevelDB successfully\n");
 }
 
@@ -354,9 +318,7 @@ bool CTxDB::LoadBlockIndex()
             break;
         CDiskBlockIndex diskindex;
         ssValue >> diskindex;
-
         uint256 blockHash = diskindex.GetBlockHash();
-
         // Construct block index object
         CBlockIndex* pindexNew    = InsertBlockIndex(blockHash);
         pindexNew->pprev          = InsertBlockIndex(diskindex.hashPrev);
@@ -378,7 +340,7 @@ bool CTxDB::LoadBlockIndex()
         pindexNew->nNonce         = diskindex.nNonce;
 
         // Watch for genesis block
-        if (pindexGenesisBlock == NULL && blockHash == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet))
+         if (pindexGenesisBlock == NULL && blockHash == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet))
             pindexGenesisBlock = pindexNew;
 
         if (!pindexNew->CheckIndex()) {
@@ -386,7 +348,7 @@ bool CTxDB::LoadBlockIndex()
             return error("LoadBlockIndex() : CheckIndex failed at %d", pindexNew->nHeight);
         }
 
-        // NovaCoin: build setStakeSeen
+        // Darsek: build setStakeSeen
         if (pindexNew->IsProofOfStake())
             setStakeSeen.insert(make_pair(pindexNew->prevoutStake, pindexNew->nStakeTime));
 
@@ -410,10 +372,10 @@ bool CTxDB::LoadBlockIndex()
     {
         CBlockIndex* pindex = item.second;
         pindex->nChainTrust = (pindex->pprev ? pindex->pprev->nChainTrust : 0) + pindex->GetBlockTrust();
-        // NovaCoin: calculate stake modifier checksum
+        // Darsek: calculate stake modifier checksum
         pindex->nStakeModifierChecksum = GetStakeModifierChecksum(pindex);
         if (!CheckStakeModifierCheckpoints(pindex->nHeight, pindex->nStakeModifierChecksum))
-            return error("CTxDB::LoadBlockIndex() : Failed stake modifier checkpoint height=%d, modifier=0x%016"PRIx64, pindex->nHeight, pindex->nStakeModifier);
+            return error("CTxDB::LoadBlockIndex() : Failed stake modifier checkpoint height=%d, modifier=0x%016"PRI64x, pindex->nHeight, pindex->nStakeModifier);
     }
 
     // Load hashBestChain pointer to end of best chain
@@ -433,7 +395,7 @@ bool CTxDB::LoadBlockIndex()
       hashBestChain.ToString().substr(0,20).c_str(), nBestHeight, CBigNum(nBestChainTrust).ToString().c_str(),
       DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()).c_str());
 
-    // NovaCoin: load hashSyncCheckpoint
+    // Darsek: load hashSyncCheckpoint
     if (!ReadSyncCheckpoint(Checkpoints::hashSyncCheckpoint))
         return error("CTxDB::LoadBlockIndex() : hashSyncCheckpoint not loaded");
     printf("LoadBlockIndex(): synchronized checkpoint %s\n", Checkpoints::hashSyncCheckpoint.ToString().c_str());
@@ -445,7 +407,7 @@ bool CTxDB::LoadBlockIndex()
 
     // Verify blocks in the best chain
     int nCheckLevel = GetArg("-checklevel", 1);
-    int nCheckDepth = GetArg( "-checkblocks", 2500);
+    int nCheckDepth = GetArg( "-checkblocks", 600);
     if (nCheckDepth == 0)
         nCheckDepth = 1000000000; // suffices until the year 19000
     if (nCheckDepth > nBestHeight)

@@ -13,6 +13,11 @@
   <property name="windowTitle">
    <string>Options</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">color: rgb(202, 117, 19);
+background-color: rgb(0, 0, 0);
+</string>
+  </property>
   <property name="modal">
    <bool>true</bool>
   </property>
@@ -23,7 +28,7 @@
       <enum>QTabWidget::North</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tabMain">
       <attribute name="title">
@@ -44,7 +49,7 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayoutFee">
+        <layout class="QHBoxLayout" name="horizontalLayout_Main">
          <item>
           <widget class="QLabel" name="transactionFeeLabel">
            <property name="text">
@@ -59,56 +64,15 @@
           </widget>
          </item>
          <item>
-          <widget class="BitcoinAmountField" name="transactionFee"/>
-         </item>
-         <item>
-          <spacer name="horizontalSpacerFee">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QLabel" name="reserveBalanceInfoLabel">
-         <property name="text">
-          <string>Reserved amount does not participate in staking and is therefore spendable at any time.</string>
-         </property>
-         <property name="textFormat">
-          <enum>Qt::PlainText</enum>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayoutReserveBalance">
-         <item>
-          <widget class="QLabel" name="reserveBalanceLabel">
-           <property name="text">
-            <string>Reserve</string>
-           </property>
-           <property name="textFormat">
-            <enum>Qt::PlainText</enum>
-           </property>
-           <property name="buddy">
-            <cstring>reserveBalance</cstring>
+          <widget class="BitcoinAmountField" name="transactionFee">
+           <property name="styleSheet">
+            <string notr="true">color: rgb(170, 0, 0);
+background-color: rgb(255, 255, 255);</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="BitcoinAmountField" name="reserveBalance"/>
-         </item>
-         <item>
-          <spacer name="horizontalSpacerReserveBalance">
+          <spacer name="horizontalSpacer_Main">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -125,10 +89,10 @@
        <item>
         <widget class="QCheckBox" name="bitcoinAtStartup">
          <property name="toolTip">
-          <string>Automatically start BlackCoin after logging in to the system.</string>
+          <string>Automatically start Darsek after logging in to the system.</string>
          </property>
          <property name="text">
-          <string>&amp;Start BlackCoin on system login</string>
+          <string>&amp;Start Darsek on system login</string>
          </property>
         </widget>
        </item>
@@ -165,7 +129,7 @@
        <item>
         <widget class="QCheckBox" name="mapPortUpnp">
          <property name="toolTip">
-          <string>Automatically open the BlackCoin client port on the router. This only works when your router supports UPnP and it is enabled.</string>
+          <string>Automatically open the Darsek client port on the router. This only works when your router supports UPnP and it is enabled.</string>
          </property>
          <property name="text">
           <string>Map port using &amp;UPnP</string>
@@ -175,7 +139,7 @@
        <item>
         <widget class="QCheckBox" name="connectSocks">
          <property name="toolTip">
-          <string>Connect to the BlackCoin network through a SOCKS proxy (e.g. when connecting through Tor).</string>
+          <string>Connect to the Darsek network through a SOCKS proxy (e.g. when connecting through Tor).</string>
          </property>
          <property name="text">
           <string>&amp;Connect through SOCKS proxy:</string>
@@ -208,6 +172,10 @@
            <property name="toolTip">
             <string>IP address of the proxy (e.g. 127.0.0.1)</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">color: rgb(170, 0, 0);
+background-color: rgb(255, 255, 255);</string>
+           </property>
           </widget>
          </item>
          <item>
@@ -234,6 +202,10 @@
            <property name="toolTip">
             <string>Port of the proxy (e.g. 9050)</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">color: rgb(170, 0, 0);
+background-color: rgb(255, 255, 255);</string>
+           </property>
           </widget>
          </item>
          <item>
@@ -253,6 +225,10 @@
           <widget class="QValueComboBox" name="socksVersion">
            <property name="toolTip">
             <string>SOCKS version of the proxy (e.g. 5)</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color: rgb(170, 0, 0);
+background-color: rgb(255, 255, 255);</string>
            </property>
           </widget>
          </item>
@@ -349,7 +325,11 @@
          <item>
           <widget class="QValueComboBox" name="lang">
            <property name="toolTip">
-            <string>The user interface language can be set here. This setting will take effect after restarting BlackCoin.</string>
+            <string>The user interface language can be set here. This setting will take effect after restarting Darsek.</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color: rgb(170, 0, 0);
+background-color: rgb(255, 255, 255);</string>
            </property>
           </widget>
          </item>
@@ -375,6 +355,10 @@
            <property name="toolTip">
             <string>Choose the default subdivision unit to show in the interface and when sending coins.</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">color: rgb(170, 0, 0);
+background-color: rgb(255, 255, 255);</string>
+           </property>
           </widget>
          </item>
         </layout>
@@ -382,7 +366,7 @@
        <item>
         <widget class="QCheckBox" name="displayAddresses">
          <property name="toolTip">
-          <string>Whether to show BlackCoin addresses in the transaction list or not.</string>
+          <string>Whether to show Darsek addresses in the transaction list or not.</string>
          </property>
          <property name="text">
           <string>&amp;Display addresses in transaction list</string>
@@ -465,6 +449,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="okButton">
+       <property name="styleSheet">
+        <string notr="true"> background : #000000 ;border-radius:10px; border-color: white; color: red;  border-style: solid; border-width: 2px;font: bold 10px;min-width: 8em;</string>
+       </property>
        <property name="text">
         <string>&amp;OK</string>
        </property>
@@ -472,6 +459,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="cancelButton">
+       <property name="styleSheet">
+        <string notr="true"> background : #000000 ;border-radius:10px; border-color: white; color: red;  border-style: solid; border-width: 2px;font: bold 10px;min-width: 8em;</string>
+       </property>
        <property name="text">
         <string>&amp;Cancel</string>
        </property>
@@ -482,6 +472,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="applyButton">
+       <property name="styleSheet">
+        <string notr="true"> background : #000000 ;border-radius:10px; border-color: white; color: red;  border-style: solid; border-width: 2px;font: bold 10px;min-width: 8em;</string>
+       </property>
        <property name="text">
         <string>&amp;Apply</string>
        </property>
@@ -496,19 +489,20 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>QValidatedLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qvalidatedlineedit.h</header>
+  </customwidget>
+  <customwidget>
    <class>BitcoinAmountField</class>
-   <extends>QSpinBox</extends>
+   <extends>QLineEdit</extends>
    <header>bitcoinamountfield.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>QValueComboBox</class>
    <extends>QComboBox</extends>
    <header>qvaluecombobox.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QValidatedLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>qvalidatedlineedit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -47,7 +47,6 @@ void OptionsModel::Init()
     fMinimizeOnClose = settings.value("fMinimizeOnClose", false).toBool();
     fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
     nTransactionFee = settings.value("nTransactionFee").toLongLong();
-    nReserveBalance = settings.value("nReserveBalance").toLongLong();
     language = settings.value("language", "").toString();
 
     // These are shared with core Bitcoin; we want
@@ -77,7 +76,7 @@ bool OptionsModel::Upgrade()
     CWalletDB walletdb(strWalletFileName);
 
     QList<QString> intOptions;
-    intOptions << "nDisplayUnit" << "nTransactionFee" << "nReserveBalance";
+    intOptions << "nDisplayUnit" << "nTransactionFee";
     foreach(QString key, intOptions)
     {
         int value = 0;
@@ -163,9 +162,7 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
         case ProxySocksVersion:
             return settings.value("nSocksVersion", 5);
         case Fee:
-            return QVariant((qint64) nTransactionFee);
-        case ReserveBalance:
-            return QVariant((qint64) nReserveBalance);
+            return QVariant(nTransactionFee);
         case DisplayUnit:
             return QVariant(nDisplayUnit);
         case DisplayAddresses:
@@ -244,13 +241,8 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
         break;
         case Fee:
             nTransactionFee = value.toLongLong();
-            settings.setValue("nTransactionFee", (qint64) nTransactionFee);
+            settings.setValue("nTransactionFee", nTransactionFee);
             emit transactionFeeChanged(nTransactionFee);
-            break;
-        case ReserveBalance:
-            nReserveBalance = value.toLongLong();
-            settings.setValue("nReserveBalance", (qint64) nReserveBalance);
-            emit reserveBalanceChanged(nReserveBalance);
             break;
         case DisplayUnit:
             nDisplayUnit = value.toInt();
@@ -288,11 +280,6 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
 qint64 OptionsModel::getTransactionFee()
 {
     return nTransactionFee;
-}
-
-qint64 OptionsModel::getReserveBalance()
-{
-    return nReserveBalance;
 }
 
 bool OptionsModel::getCoinControlFeatures()
